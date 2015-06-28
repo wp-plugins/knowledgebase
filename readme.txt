@@ -1,5 +1,5 @@
 === Knowledgebase ===
-Contributors: Ajay, WebberZone
+Contributors: Ajay, webberzone
 Donate link: https://webberzone.com/donate/
 Tags: knowledgebase, FAQ, frequently asked questions, knowledge base, support, documentation
 Requires at least: 3.5
