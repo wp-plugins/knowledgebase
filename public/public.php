@@ -34,7 +34,8 @@ add_action( 'plugins_loaded', 'wzkb_lang_init' );
  */
 function wpkb_enqueue_styles() {
 
-	wp_register_style( 'wpkb_styles', plugin_dir_url( __FILE__ ) . 'css/styles.css', false, false );
+	wp_register_style( 'wzkb_styles', plugin_dir_url( __FILE__ ) . 'css/styles.min.css', false, false );
+	wp_register_style( 'wzkb_archive_styles', plugin_dir_url( __FILE__ ) . 'css/archive-styles.min.css' );
 
 }
 add_action( 'wp_enqueue_scripts', 'wpkb_enqueue_styles' );
@@ -45,17 +46,54 @@ add_action( 'wp_enqueue_scripts', 'wpkb_enqueue_styles' );
  *
  * @since	1.0.0
  *
- * @param	string	$archive_template	Default Archive Template location
+ * @param	string	$template	Default Archive Template location
  * @return	string	Modified Archive Template location
  */
-function wzkb_archive_template( $archive_template ) {
-	global $post;
+function wzkb_archive_template( $template ) {
+	global $post, $wzkb_path;
 
-	if ( is_post_type_archive ( 'wz_knowledgebase' ) ) {
-		$archive_template = plugin_dir_path( __FILE__ ) . 'public/templates/archive-template.php';
+	if ( is_post_type_archive( 'wz_knowledgebase' ) ) {
+
+		if ( is_search() ) {
+			$template_name = 'search-wz_knowledgebase.php';
+		} else {
+			$template_name = 'archive-wz_knowledgebase.php';
+		}
+
+		if ( '' == locate_template( array( $template_name ) ) ) {
+			$template = $wzkb_path . 'public/templates/' . $template_name;
+		}
 	}
-	return $archive_template;
-}
-//add_filter( 'archive_template', 'wzkb_archive_template' ) ;
 
+	if ( is_tax( 'wzkb_category' ) && ! is_search() ) {
+
+		$template_name = 'taxonomy-wzkb_category.php';
+
+		if ( '' == locate_template( array( $template_name ) ) ) {
+			$template = $wzkb_path . 'public/templates/' . $template_name;
+		}
+	}
+
+	return $template;
+}
+add_filter( 'template_include', 'wzkb_archive_template' ) ;
+
+
+/**
+ * For knowledgebase search results, set posts_per_page 10.
+ *
+ * @since	1.1.0
+ *
+ * @param	object	$query	The search query object
+ * @return	object	$query	Updated search query object
+ */
+function wzkb_posts_per_search_page( $query ) {
+
+	if ( ! is_admin() && is_search() && $query->query_vars['post_type'] == 'wz_knowledgebase' ) {
+		$query->query_vars['posts_per_page'] = 10;
+	}
+
+    return $query;
+}
+add_filter( 'pre_get_posts', 'wzkb_posts_per_search_page' );
 
